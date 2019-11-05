@@ -277,6 +277,6 @@ A = [[2.0, 1.0, 1.0]
 
 b = [5.0, 3.0, 8.0]
 
-simplex1 = Simplex(c, A, b)
-simplex1.simplexAlgorithm()
+myTask = Simplex(c, A, b)
+myTask.simplexAlgorithm()
 
