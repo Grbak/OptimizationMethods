@@ -1,4 +1,5 @@
 
+
 class Simplex:
 	def __init__ (self, c, A, b):
 		self.c = c #Вектор коэффициентов целевой функции F
@@ -18,10 +19,10 @@ class Simplex:
 		# F - список, хранящий элементы последней строки симплек-таблицы
 
 		self.string = [self.x[0], self.x[1], self.x[2], self.x[3], self.x[4], self.x[5], self.x[6], self.x[7]]
-		self.firstBasicVariable = [self.x[3], self.A[0][0], self.A[0][1], self.A[0][2], 1.0, 0.0, 0.0, self.b[0]] 
-		self.secondBasicVariable = [self.x[4], self.A[1][0], self.A[1][1], self.A[1][2], 0.0, 1.0, 0.0, self.b[1]] 
-		self.thirdBasicVariable = [self.x[5], self.A[2][0], self.A[2][1], self.A[2][2], 0.0, 0.0, 1.0, self.b[2]] 
-		self.F = [self.x[8], -self.c[0], -self.c[1], -self.c[2], 0.0, 0.0, 0.0, 0.0]	
+		self.firstBasicVariable = [self.x[4], self.A[0][0], self.A[0][1], self.A[0][2], 1.0, 0.0, 0.0, self.b[0]] 
+		self.secondBasicVariable = [self.x[5], self.A[1][0], self.A[1][1], self.A[1][2], 0.0, 1.0, 0.0, self.b[1]] 
+		self.thirdBasicVariable = [self.x[6], self.A[2][0], self.A[2][1], self.A[2][2], 0.0, 0.0, 1.0, self.b[2]] 
+		self.F = [self.x[8], self.c[0], self.c[1], self.c[2], 0.0, 0.0, 0.0, 0.0]	
 
 		self.SimplexTableau = [self.string, self.firstBasicVariable, self.secondBasicVariable, self.thirdBasicVariable, self.F] #Двумерный список, хранящий
 		# в себе всю симплекс-таблицу 
@@ -82,14 +83,14 @@ class Simplex:
 
 
 	def checking (self):
-		for element in range(1, len(self.SimplexTableau)):
+		for element in range(1, len(self.SimplexTableau) - 1):
 			if(self.SimplexTableau[element][7] < 0):
 				print("     В столбце свободных членов присутствуют отрицательные элементы, что говорит о недопустимости решения. \n")
 				return 1
 
 		for index in range(1, len(self.SimplexTableau[4])):
-			if(self.SimplexTableau[4][index] < 0):
-				print("     В строке функции присутствуют отрицательные элементы, что говорит о неоптимальности решения. \n")
+			if(self.SimplexTableau[4][index] > 0):
+				print("     В строке функции присутствуют положительные элементы, что говорит о неоптимальности решения. \n")
 				return 1
 
 		print("     В нижней строке отсутствуют отрицательные элементы, что говорит о нахождении оптимального решения.\n")
@@ -102,24 +103,22 @@ class Simplex:
 
 	def findResolvingColumn (self):
 
-		#Проходимся по последней строке симплекс-таблицы и добавляем все отрицательные элементы в список listOfIndices
+		#Проходимся по последней строке симплекс-таблицы и добавляем все положительные элементы в список listOfIndices
 
 		listOfIndices = [] 
 		for index in range(1, len(self.SimplexTableau[4])):
-			if (self.SimplexTableau[4][index] < 0):
+			if (self.SimplexTableau[4][index] > 0):
 				listOfIndices.append(index);
 
-		# Далее зададим начальное значение минимального элемента равное нулю. Это сработает, т.к. если программа дошла до этой строчки, значит, в строке 
-		# F присутствуют отрицаельныне элементы, по определению меньшие нуля. Рассуждая таким же образом, начальный индекс минимального элемента также
-		# зададим равным нулю
+		# Далее зададим начальное значение максимального элемента и его индекс равными нулю 
 
-		minimalElement = 0
+		maximalElement = 0
 		indexOfResolvingColumn = 0 
 
-		#Проходим по списку listOfIndices и находим минимальный элемент из отрицательных
+		#Проходим по списку listOfIndices и находим максимальный элемент
 			
 		for index in listOfIndices: 
-			if (self.SimplexTableau[4][index] < minimalElement):
+			if (self.SimplexTableau[4][index] > maximalElement):
 				minimalElement = self.SimplexTableau[4][index]
 				indexOfResolvingColumn = index
 
@@ -279,4 +278,5 @@ b = [5.0, 3.0, 8.0]
 
 myTask = Simplex(c, A, b)
 myTask.simplexAlgorithm()
+
 
