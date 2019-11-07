@@ -110,16 +110,16 @@ class Simplex:
 			if (self.SimplexTableau[4][index] > 0):
 				listOfIndices.append(index);
 
-		# Далее зададим начальное значение максимального элемента и его индекс равными нулю 
+		# Далее зададим начальное значение максимального элемента равным нулю, а индекс - единице
 
 		maximalElement = 0
-		indexOfResolvingColumn = 0 
+		indexOfResolvingColumn = 1
 
 		#Проходим по списку listOfIndices и находим максимальный элемент
 			
 		for index in listOfIndices: 
 			if (self.SimplexTableau[4][index] > maximalElement):
-				minimalElement = self.SimplexTableau[4][index]
+				maximalElement = self.SimplexTableau[4][index]
 				indexOfResolvingColumn = index
 
 		#Затем выведем полученные результаты
@@ -185,7 +185,7 @@ class Simplex:
 		print("     min {", end = " ")
 		for index in range(len(listOfValues)):
 			if(index == (len(listOfValues) - 1)):
-				print(round((listOfValues[index]), 2), "} =", abs(round(self.SimplexTableau[4][indexOfResolvingColumn], 2)))
+				print(round((listOfValues[index]), 2), "} =", round(minimalValue, 2))
 				break
 			print(round(listOfValues[index], 2), ",", end = " ")
 		print("     Разрешающая строка:", self.SimplexTableau[indexOfResolvingString][0], "\n")
@@ -278,5 +278,4 @@ b = [5.0, 3.0, 8.0]
 
 myTask = Simplex(c, A, b)
 myTask.simplexAlgorithm()
-
 
