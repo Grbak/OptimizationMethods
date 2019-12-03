@@ -6,12 +6,12 @@ class Simplex:
 
 		self.x = ["x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9"] # Список, элементы которого будут использованы для вывода постановки ПЗ ЛП
 		self.other = ["-", "F", "b"]
-		self.basicVariables = ["x4", "x5", "x6", "x7", "x8", "x9"]
-		self.signsOfInequality = signsOfInequality
+		self.basicVariables = ["x4", "x5", "x6", "x7", "x8", "x9"] 
+		self.signsOfInequality = signsOfInequality # Список знаков неравенст
 
-		self.numberOfFreeVariables = len(self.c)
-		self.numberOfBasicVariables = len(self.A)
-		self.numberOfVariables = self.numberOfFreeVariables + self.numberOfBasicVariables
+		self.numberOfFreeVariables = len(self.c) # Количество свободных переменных
+		self.numberOfBasicVariables = len(self.A) # Количеество базисных переменных
+		self.numberOfVariables = self.numberOfFreeVariables + self.numberOfBasicVariables # Количество всех переменных
 
 		# Следующий блок кода инициализирует все строки симплекс-таблицы, которые позже будут добавлены в двумерный список, представляющий, собственно, 
 		# всю симплекс-таблицу
@@ -48,7 +48,7 @@ class Simplex:
 		self.F = []
 		self.F.append(self.other[1])
 		for index in self.c:
-			self.F.append(index)
+			self.F.append(-index)
 		for index in range(self.numberOfBasicVariables + 1):
 		 	self.F.append(0)
 		self.SimplexTableau.append(self.F)
@@ -81,9 +81,13 @@ class Simplex:
 				print(( "%7s" % round(self.SimplexTableau[index][element], 2)), end ="")
 			print("\n")
 
+
+
 	# printLinearProblem - функция, выводящая решаемую задачу
 
 	def printLinearProblem (self):
+
+		# Вывод постановки задачи
 
 		print("\n     F = ", end="")
 		for j in range (self.numberOfFreeVariables):
@@ -93,21 +97,25 @@ class Simplex:
 			print(self.c[j], "*", self.x[j], end=" + ")
 		print(" -> max")
 
+		# Вывод системы ограничений
+
 		for i in range (self.numberOfBasicVariables):
 			print("     ", end="")
 			for j in range (self.numberOfFreeVariables - 1):
 				print(self.A[i][j], "*", self.x[j], "+", end=" ")
 			print(self.A[i][self.numberOfFreeVariables - 1], "*", self.x[self.numberOfFreeVariables - 1], self.signsOfInequality[i],self.b[i])
 		
+		# Вывод системы ограничений с веденными фиктивными переменными
+
 		print("     ", end="")
 		for i in range(self.numberOfFreeVariables - 1):
 			print(self.x[i], end=", ")
 		print (self.x[self.numberOfFreeVariables - 1],">= 0 \n")
 
-		print("     Введением фиктивных переменных ", end="")
+		print("     Введем фиктивные переменные ", end="")
 		for index in range(self.numberOfBasicVariables - 1):
 			print(self.basicVariables[index], ",", end=" ")
-		print(self. basicVariables[self.numberOfBasicVariables - 1], "приведем задачу к каноническому виду:\n")
+		print(self. basicVariables[self.numberOfBasicVariables - 1], ":\n")
 
 
 		print("     F = - ( - ", end="")
@@ -116,7 +124,7 @@ class Simplex:
 				print(self.c[j], "*", self.x[j], end="")
 				break
 			print(self.c[j], "*", self.x[j], end=" - ")
-		print(") -> min")
+		print(") -> max")
 
 		for i in range (self.numberOfBasicVariables):
 			print("     ", end="")
@@ -142,6 +150,11 @@ class Simplex:
 
 
 
+	# bruteForce - реализация метода перебора
+	# Первый цикл итерирутся трижды, второй - дважды, а третий - шесть раз. Это было сделано из тех соображений, что исходя из системы ограничений первая переменная не 
+	# может быть больше двух, вторая - не больше единицы а третья не больше пяти. Можно было бы создать метод, который бы это высчитывал, но мне показалось это
+	# пустой тратой времени, поэтому я просто вручную подставил значения для своего варианта
+
 	def bruteForce(self):
 		print("     Решим задачу методом перебора: \n")
 
@@ -150,7 +163,7 @@ class Simplex:
 
 		for i in range(3):
 			for j in range(2):
-				for k in range(9):
+				for k in range(6):
 					x = [i, j, k]
 
 					F = self.checking(x)
@@ -185,6 +198,10 @@ class Simplex:
 		print("    ",self.other[1], "=", maximalValue, "\n")
 
 
+
+	# checking - функция, возвращающая один, если вектор корней x удовлетворяет всем ограничениям, и ноль - если не удовлетворяет. Используется при проверке в методе 
+	# перебором
+
 	def checking(self, x):
 		for i in range(self.numberOfBasicVariables):
 			value = 0
@@ -210,15 +227,16 @@ class Simplex:
 				return 0
 		return 1
 
+
+
 	# isOptimal - функция, проверяющая, является ли решение, найденное на этом этапе, оптимальным. Если нет - функция возвращает нуль, иначе - единицу, после чего программа
 	# закончит свое выполнения
 
 	def isOptimal(self):
 		for index in range(1, len(self.SimplexTableau[4]) - 1):
-			if(self.SimplexTableau[self.numberOfBasicVariables + 1][index] > 0):
+			if(self.SimplexTableau[self.numberOfBasicVariables + 1][index] < 0):
 				return 0
 		return 1
-
 
 
 
@@ -263,23 +281,23 @@ class Simplex:
 
 		if(flag == 1):
 
-		# Проходимся по последней строке симплекс-таблицы и добавляем все положительные элементы в список listOfIndices
+		# Проходимся по последней строке симплекс-таблицы и добавляем все отрицательные элементы в список listOfIndices
 
 			listOfIndices = [] 
 			for index in range(1, len(self.SimplexTableau[self.numberOfBasicVariables]) - 1):
-				if (self.SimplexTableau[self.numberOfBasicVariables + 1][index] > 0): 
+				if (self.SimplexTableau[self.numberOfBasicVariables + 1][index] < 0): 
 					listOfIndices.append(index);
 
-			# Далее зададим начальное значение максимального элемента равным нулю, а индекс - единице
+			# Далее зададим начальное значение минимального элемента равным нулю, а индекс - единице
 
-			maximalElement = 0
+			minimalElement = 0
 			indexOfResolvingColumn = 1
 
 			# Проходим по списку listOfIndices и находим максимальный элемент
 			
 			for index in listOfIndices: 
-				if (self.SimplexTableau[self.numberOfBasicVariables + 1][index] > maximalElement):
-					maximalElement = self.SimplexTableau[self.numberOfBasicVariables + 1][index]
+				if (self.SimplexTableau[self.numberOfBasicVariables + 1][index] < minimalElement):
+					minimalElement = self.SimplexTableau[self.numberOfBasicVariables + 1][index]
 					indexOfResolvingColumn = index
 
 			# Возвращаем индекс разрешающего столбца
@@ -309,7 +327,7 @@ class Simplex:
 
 		for index in listOfIndices:
 			value = self.SimplexTableau[index][self.numberOfVariables + 1] / self.SimplexTableau[index][indexOfResolvingColumn]
-			if(value > 0):
+			if(value >= 0):
 				listOfValues.append(value)
 
 		# В данном блоке найдем начальное минимальное значение частного b/a. Для этого пробежимся по всем строкам, и как только частное в какой-то строке 
@@ -317,7 +335,7 @@ class Simplex:
 
 		for index in listOfIndices:
 			currentValue = self.SimplexTableau[index][self.numberOfVariables + 1] / self.SimplexTableau[index][indexOfResolvingColumn]
-			if (currentValue > 0):
+			if (currentValue >= 0):
 				minimalValue = currentValue
 				break
 
@@ -325,7 +343,7 @@ class Simplex:
 
 		for index in listOfIndices: 
 			currentValue = self.SimplexTableau[index][self.numberOfVariables + 1] / self.SimplexTableau[index][indexOfResolvingColumn]
-			if ( (currentValue <= minimalValue) & (currentValue > 0)):
+			if ( (currentValue <= minimalValue) & (currentValue >= 0)):
 				minimalValue = currentValue 
 				indexOfResolvingString = index
 
@@ -375,13 +393,11 @@ class Simplex:
 
 
 
-	# Функция simplexAlgorithm описывает весь алгоритм симплекс-метода
+	# simplexAlgorithm - функция, описывающая весь алгоритм симплекс-метода
 
 	def simplexAlgorithm(self):
 
-		# Выводим поставленную задачу и исходную симплекс-таблицу
-
-		# self.printLinearProblem()
+		# Выводим исходную симплекс-таблицу
 
 		print("\n     Решим задачу с помощью симплекс-метода. Запишем исходную симплекс-таблицу:\n")
 		self.printSimplexTableau()
@@ -402,34 +418,234 @@ class Simplex:
 			resolvingElement = self.findResolvingElement(1)
 			self.tableConversion(resolvingElement)
 
-		# Выводим результат работы алгоритма
-
-		print("\n     Конечная симплекс-таблица имеет вид:\n")
-		self.printSimplexTableau()
-
-		print("     Оптимальное решение:\n")
-		for index in range(1, len(self.SimplexTableau)):
-			print("    ", self.SimplexTableau[index][0], " = ", round(self.SimplexTableau[index][self.numberOfVariables + 1], 2), "\n")
-
-		print("     Тогда оптимальное решение исходной задачи:\n")
-		for index in range(1, len(self.SimplexTableau) - 1):
-			print("    ", self.SimplexTableau[index][0], " = ", round(self.SimplexTableau[index][self.numberOfVariables + 1], 2), "\n")
-		print("    ", self.SimplexTableau[len(self.SimplexTableau) - 1][0], " = ", round(-self.SimplexTableau[len(self.SimplexTableau) - 1][self.numberOfVariables + 1], 2), "\n")
-		print("\n")
-
+		# Если решения нет - функция выведет 0
 
 		for index in range(1, len(self.SimplexTableau) - 1):
 		 	if(self.SimplexTableau[index][self.numberOfVariables + 1] < 0):
 		 		print("     В столбце свободных членов присутствуют отрицательные значения. Следовательно, решения не существует.\n")
 		 		return 0
 
-		# for index in range(1, self.numberOfBasicVariables + 1):
-		#  	if not((self.SimplexTableau[index][self.numberOfVariables + 1] - int(self.SimplexTableau[index][self.numberOfVariables + 1]) == 0)):
-		#  		if((self.SimplexTableau[index][0] == "x1") | (self.SimplexTableau[index][0] == "x2") | (self.SimplexTableau[index][0] == "x3")):
-		#  			print("     Необходимо произвести ветвление по переменной", self.x[index - 1], ".\n")
-		#  			break
+		# Выводим результат работы алгоритма
+
+		print("\n     Конечная симплекс-таблица имеет вид:\n")
+		self.printSimplexTableau()
+
+		print("\n     Оптимальное решение:\n")
+		for index in range(1, self.numberOfBasicVariables + 2):
+			print("    ", self.SimplexTableau[index][0], " = ", round(self.SimplexTableau[index][self.numberOfVariables + 1], 2), "\n")
+
+		return 1
 
 	
+
+
+
+
+
+
+# IntegerLinearProgramming - класс задачи ЦЛП
+
+class IntegerLinearProgramming:
+	def __init__(self, c, A, b, signsOfInequality):
+		self.c = c 
+		self.A = A 
+		self.b = b 
+		self.signsOfInequality = signsOfInequality
+		task = Simplex(c, A, b, signsOfInequality)
+		self.indexOfBranchVariable = 0 # Индекс переменной ветвления
+
+
+	# checking - функция, проверяющая, является ли найденное на данном этапе решение целочисленным. Если да - вернет ноль, в противном случае вернет индекс строки 
+	# переменной, ветвление которой надо осуществить
+
+	def checking(self, task):
+		listOfFreeVariablesIndices = []
+		for index in range(1, task.numberOfBasicVariables + 1):
+			if((task.SimplexTableau[index][0] == task.x[index - 1])):
+				listOfFreeVariablesIndices.append(index)
+
+		self.indexOfBranchVariableString = 0
+
+		for index in listOfFreeVariablesIndices:
+			fraction = task.SimplexTableau[index][task.numberOfVariables + 1] - int(task.SimplexTableau[index][task.numberOfVariables + 1])
+			if(fraction != 0):
+				print("     Произведем ветвление по переменной", task.SimplexTableau[index][0], ". Для этого добавим новое ограничение: \n")
+				self.indexOfBranchVariableString = index
+
+				if(task.SimplexTableau[index][0] == "x1"):
+					self.indexOfBranchVariable = 1
+					break
+				if(task.SimplexTableau[index][0] == "x2"):
+					self.indexOfBranchVariable = 2
+					break
+				if(task.SimplexTableau[index][0] == "x3"):
+					self.indexOfBranchVariable = 3
+					break
+
+		return self.indexOfBranchVariableString
+
+	# addingListToA - функция, добавляющая новую строки в матрицу ограничений при добавлении нового ограничения в задачу
+
+	def addingListToA(self, indexOfBranchVariable):
+		listOfLastString = []
+		for index in range(len(self.c)):
+			if(index == self.indexOfBranchVariable - 1):
+				listOfLastString.append(1)
+			else:
+				listOfLastString.append(0)
+		self.A.append(listOfLastString)
+
+	# addingElementToB - функция, добавляющая новый элемент в вектор правой части системы ограничений, а также в вектор знаков неравенств
+	# Параметр i указывает, какой именно знак у нового ограничения
+
+	def addingElementToB(self, i, task):
+		if(i == 0):
+			self.b.append(int(task.SimplexTableau[self.indexOfBranchVariableString][task.numberOfVariables + 1]))
+			self.signsOfInequality.append("<=")
+			print("     ", task.SimplexTableau[self.indexOfBranchVariableString][0], "<=", self.b[len(self.b) - 1], "\n")
+		else:
+			self.b.append(int(task.SimplexTableau[self.indexOfBranchVariableString][task.numberOfVariables + 1]) + 1)
+			self.signsOfInequality.append(">=")
+			print("     ", task.SimplexTableau[self.indexOfBranchVariableString][0], ">=", self.b[len(self.b) - 1], "\n")
+
+
+	# delete - функция, удаляющая последнюю строку матрицы A, а также последние элементы вектора правой части системы ограничений и вектора знаков неравенств. Это 
+	# используется в алгоритме метода ветвей и границ, когда необходимо в процессе ветвления удалить последнее добавленное ограничение и добавить новое 
+
+	def delete(self):
+		A.pop()
+		b.pop()
+		signsOfInequality.pop()
+
+	# findAndPrintOptimalSolution - функция, принимающая в качестве аргумента список со всеми целочисленными решениями, находит из них оптимальное, и выводит результат
+
+	def findAndPrintOptimalSolution(self, integerSolutions):
+		maximalValueOfFunction = 0
+		indexOfOptimalSolution = 0
+		for index in range(len(integerSolutions)):
+			if( integerSolutions[index][3] > maximalValueOfFunction):
+				indexOfOptimalSolution = index
+
+		x = ["x1", "x2", "x3", "F"]
+
+		for index in range(4):
+			print("\n    ", x[index], "=", integerSolutions[indexOfOptimalSolution][index])
+			
+	# getIntegerSolution - функция, получающая из симплекс-таблицы целочисленное решение. Возвращает список, первым значением которого является коэффициент при x1,
+	# вторым - коэффициент при x2, третьим - коэффициент при x3, а последним - значение функции при данных корнях. Необходима, когда нужно будет из всех решений найти
+	# оптимальное, а также при удобном выводе этого оптимального решения
+
+	def getIntegerSolution(self, task):
+		integerSolution = []
+		for i in range(3):
+			for j in range(1, task.numberOfBasicVariables + 1):
+					if(task.SimplexTableau[j][0] == task.x[i]):
+						integerSolution.append(task.SimplexTableau[j][task.numberOfVariables + 1])
+						break
+		integerSolution.append(task.SimplexTableau[task.numberOfBasicVariables + 1][task.numberOfVariables + 1])
+
+		return integerSolution
+
+
+	def branchAndBoundAlgorithm(self):
+
+		# integerSolutions - список, в который будут добавляться в течение работы алгоритма все целочисленные решения, а в конце алгоритма с помощью этого списка из всех
+		# решений будет найдено оптимальное
+
+		integerSolutions = [] 
+
+		# Решение исходной задачи методом перебора, а также с помощью симплекс-метода
+
+		initialTask = Simplex(self.c, self.A, self.b, self.signsOfInequality)
+		initialTask.printLinearProblem()
+		initialTask.bruteForce()
+		initialTask.simplexAlgorithm()
+
+
+		for i in range(2):
+
+			# Проверяем, является ли решение задачи не данном этапе целочисленным. Если да - выходим из цикла - то есть заканчиваем ветвление, а также добавляем данное
+			# целочисленное решение в список всех целочисленных решений. Если нет - получаем индекс строки переменной, ветвление которой нужно осуществить
+
+			indexOfBranchVariableString = self.checking(initialTask)
+			if not(indexOfBranchVariableString):
+				print("\n     Целочисленное решение найдено!\n")
+				integerSolution = self.getIntegerSolution(initialTask)
+				integerSolutions.append(integerSolution)
+				break
+
+			# Добавляем новые ограничения в начальные условия
+
+			self.addingListToA(self.indexOfBranchVariable)
+			self.addingElementToB(i, initialTask)
+
+			# Решаем новую задачу с помощью симплекс-метода. Если решения нет - удаляем все добавленные на данном этапе новые ограничения и переходим к следующей итерации 
+			# ветвления 
+
+			print("     Тогда задача будет иметь вид:")
+
+			firstStepTask = Simplex(c, A, b, signsOfInequality)
+			firstStepTask.printLinearProblem()
+			if not(firstStepTask.simplexAlgorithm()):
+				self.delete()
+				continue
+
+			# Далее алгоритм производит ветвление и работает так же, как и на этом этапе. Всего алгоритм имеет три цикла, каждый следующий цикл вложен в предыдущий. Это
+			# связано с тем, что в исходной функции всего три переменных - таким образом максимальная высота дерева в решении данной задачи будет равна трем
+
+			for j in range(2):
+				indexOfBranchVariableStringFirstStep = self.checking(firstStepTask)
+
+				if not(indexOfBranchVariableStringFirstStep):
+					print("\n     Целочисленное решение найдено!\n")
+					integerSolution = self.getIntegerSolution(firstStepTask)
+					integerSolutions.append(integerSolution)
+					break
+
+				self.addingListToA(self.indexOfBranchVariable)
+				self.addingElementToB(j, firstStepTask)
+
+				print("     Тогда задача будет иметь вид:")
+
+				secondStepTask = Simplex(c, A, b, signsOfInequality)
+				secondStepTask.printLinearProblem()
+				if not(secondStepTask.simplexAlgorithm()):
+					self.delete()
+					continue
+
+				for k in range(2):
+					indexOfBranchVariableStringSecondStep = self.checking(secondStepTask)
+
+					if not(indexOfBranchVariableStringSecondStep):
+						print("\n     Целочисленное решение найдено!\n")
+						integerSolution = self.getIntegerSolution(secondStepTask)
+						integerSolutions.append(integerSolution)
+						break
+
+					self.addingListToA(self.indexOfBranchVariable)
+					self.addingElementToB(j, secondStepTask)
+
+					print("     Тогда задача будет иметь вид:")
+
+					thirdStepTask = Simplex(c, A, b, signsOfInequality)
+					thirdStepTask.printLinearProblem()
+					if not(task3.simplexAlgorithm()):
+						self.delete()
+						continue
+
+					self.delete()
+
+				self.delete()
+
+			self.delete()
+
+		# Из всех целочисленных решений находим оптимальное 
+
+		print("\n     Методом ветвей и границ найдено следующее целочисленное решение:")
+		self.findAndPrintOptimalSolution(integerSolutions)
+
+
+
 
 
 signsOfInequality = ["<=", "<=", "<="]
@@ -442,67 +658,12 @@ A = [[2, 1, 1]
 
 b = [5, 3, 8]
 
-
-task = Simplex(c, A, b, signsOfInequality)
-task.printLinearProblem()
-task.bruteForce()
-task.simplexAlgorithm()
-
-for i in range(2):
-
-	for index in range(1, len(task.SimplexTableau) - 1):
-		if(task.SimplexTableau[index][task.numberOfVariables + 1] < 0):
-			print("     В столбце свободных членов присутствуют отрицательные значения. Следовательно, решения не существует.\n")
-			break
-
-	indexOfVariablevetv = 0
-
-	for index in range(1, task.numberOfBasicVariables + 1):
-		 if ((task.SimplexTableau[index][task.numberOfVariables + 1] - int(task.SimplexTableau[index][task.numberOfVariables + 1]) != 0)):
-		 	if((task.SimplexTableau[index][0] == "x1") | (task.SimplexTableau[index][0] == "x2") | (task.SimplexTableau[index][0] == "x3")):
-		 		# print("     Произведем ветвление по переменной", task.x[index - 1], ". Для этого добавим новое ограничение: \n")
-		 		indexOfVariablevetv = index 
-		 		break
-
-	A1 = A
-	b1 = b
-	signsOfInequality1 = signsOfInequality
-	listOf = []
+myTask = IntegerLinearProgramming(c, A, b, signsOfInequality)
+myTask.branchAndBoundAlgorithm()
 
 
-	for index in range(len(c)):
-		if(index == indexOfVariablevetv - 1):
-			listOf.append(1)
-		else:
-			listOf.append(0)
-	A1.append(listOf)
 
 
-	if(i == 0):
-		b1.append(int(task.SimplexTableau[indexOfVariablevetv][task.numberOfVariables + 1]))
-		signsOfInequality1.append("<=")
-		print("     Произведем ветвление по переменной", task.x[indexOfVariablevetv - 1], ". Для этого добавим новое ограничение: \n")
-		print("     ",task.x[indexOfVariablevetv - 1], "<=", b1[len(b1) - 1], "\n")
-
-	else:
-		b1.append(int(task.SimplexTableau[indexOfVariablevetv][task.numberOfVariables + 1]) + 1)
-		signsOfInequality1.append(">=")
-		print("     Продолжим ветвление по переменной", task.x[indexOfVariablevetv - 1], ", добавив новое ограничение: \n")
-		print("     ",task.x[indexOfVariablevetv - 1], ">=", b1[len(b1) - 1], "\n")
-
-	print("     Тогда задача будет иметь вид:")
-
-	# print(A1)
-	# print(b1)
-	# print(signsOfInequality1)
-
-	task1 = Simplex(c, A1, b1, signsOfInequality1)
-	task1.printLinearProblem()
-	task1.simplexAlgorithm()
-
-	A1.pop()
-	b1.pop()
-	signsOfInequality1.pop()
 
 
 
