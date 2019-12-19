@@ -38,9 +38,9 @@ class Simplex:
 				self.basicVariable.append(A[i][j])
 			for element in range(self.numberOfBasicVariables):
 				if(element == i):
-					self.basicVariable.append(1)
+					self.basicVariable.append(1.0)
 				else:
-					self.basicVariable.append(0)
+					self.basicVariable.append(0.0)
 			self.basicVariable.append(self.b[i])
 			self.SimplexTableau.append(self.basicVariable)
 
@@ -380,6 +380,8 @@ class IntegerLinearProgramming:
 		self.signsOfInequality = signsOfInequality
 		self.task = Simplex(c, A, b, signsOfInequality)
 
+
+
 	def getFractions(self):
 		fractions = []
 
@@ -389,7 +391,6 @@ class IntegerLinearProgramming:
 						# print(self.task.x[i])
 						fractions.append(round(self.task.SimplexTableau[j][self.task.numberOfVariables + 1] % 1, 2))
 
-		# print(fractions)
 
 		return fractions
 
@@ -399,10 +400,11 @@ class IntegerLinearProgramming:
 		minimalFraction = 0.99
 
 		for index in range(len(fractions)):
-			if(fractions[index] < minimalFraction):
+			if(fractions[index] < minimalFraction) & (fractions[index] != 0):
 				minimalFraction = fractions[index]
 
 		return minimalFraction
+
 
 
 	def getIndexOfVariableForAddingNewLimitation(self, minimalFraction):
@@ -416,68 +418,125 @@ class IntegerLinearProgramming:
 
 
 
+	def printFractions(self, stringOfFractions):
+		print("     Остатки элементов этой строки:\n")
+		for i in range(len(stringOfFractions)):
+			print("     {", self.task.x[i], "} =", round(stringOfFractions[i], 2),"\n")
+
+
+
 	def findVariableForAddingNewLimitation(self):
 		fractions = self.getFractions()
 		minimalFraction = self.getMinimalFraction(fractions)
+		indexOfVariableForAddingNewLimitation = self.getIndexOfVariableForAddingNewLimitation(minimalFraction)
 
-		return self.getIndexOfVariableForAddingNewLimitation(minimalFraction)
+		print("     Минимальный остаток в столбце свободных членов равен", minimalFraction, "и находится в строке",
+			self.task.SimplexTableau[indexOfVariableForAddingNewLimitation][0],".\n")
+
+		return indexOfVariableForAddingNewLimitation
+
 
 
 	def getStringOfFractions(self, indexOfVariableForAddingNewLimitation):
 		stringOfFractions = []
 		for index in range(1, self.task.numberOfVariables + 2):
-			# print(self.task.SimplexTableau[indexOfVariableForAddingNewLimitation][index])
 			stringOfFractions.append(self.task.SimplexTableau[indexOfVariableForAddingNewLimitation][index] % 1)
 
 		return stringOfFractions
 
 
-	def getIndicesOfFreeVariables(self):
-		basicVariables = []
-		for index in range(1, self.task.numberOfBasicVariables + 1):
-			basicVariables.append(self.task.SimplexTableau[index][0])
 
-		# print(basicVariables)
+	def newLimitationCalculation(self, stringOfFractions):
+		valuesOfNewLimitation = []
+		for i in range(self.task.numberOfFreeVariables):
+			valuesOfNewLimitation.append(- stringOfFractions[i])
+		valuesOfNewLimitation.append(- stringOfFractions[len(stringOfFractions) - 1])
 
-		indicesOfFreeVariables = []
+		for i in range(self.task.numberOfVariables - self.task.numberOfFreeVariables):
+			# print("_______________________________________________________________")
+			for j in range(3):
+				valuesOfNewLimitation[j] += stringOfFractions[i + self.task.numberOfFreeVariables] * self.task.A[i][j]
+				# print(valuesOfNewLimitation)
+			valuesOfNewLimitation[len(valuesOfNewLimitation) - 1] += stringOfFractions[i + self.task.numberOfFreeVariables] * self.task.b[i]
 
-		for i in range(1, self.task.numberOfVariables):
-			for j in range(1, self.task.numberOfBasicVariables):
-				if(self.task.SimplexTableau[0][i] == basicVariables[j - 1]):
-					break
-
-				if(j == self.task.numberOfBasicVariables - 1):
-					indicesOfFreeVariables.append(i)
-
-		return indicesOfFreeVariables
+		return valuesOfNewLimitation
 
 
-	def cuttingPlaneMethod(self):
+
+	def makingNewSimplex(self):
+		self.task = Simplex(self.c, self.A, self.b, self.signsOfInequality)
+
+
+
+	def addingNewLimitation(self, valuesOfNewLimitation):
+		listOfLastString = []
+		for i in range(self.task.numberOfFreeVariables):
+			listOfLastString.append(round(valuesOfNewLimitation[i], 2))
+		self.A.append(listOfLastString)
+
+		self.b.append(valuesOfNewLimitation[len(valuesOfNewLimitation) - 1])
+
+		self.signsOfInequality.append("<=")
+
+	
+
+	def printNewLimitation(self, valuesOfNewLimitation):
+		print("     Проводим вычисления и добавляем новое ограничение:\n\n     ", end="")
+		for j in range (len(valuesOfNewLimitation) - 1):
+				print(valuesOfNewLimitation[j], "*", self.task.x[j], "+", end=" ")
+		print("<=", self.b[len(self.b) - 1])
+
+
+
+
+	def iterationOfCuttingPlaneMethod(self):
+
+		# Находим строку, по которой будем добавлять новое ограничение, выводим остатки элементов этой строки
+
+		indexOfVariableForAddingNewLimitation = self.findVariableForAddingNewLimitation()
+		stringOfFractions = self.getStringOfFractions(indexOfVariableForAddingNewLimitation)
+		self.printFractions(stringOfFractions)
+
+		# Вычисляем коэффциенты для нового ограничения, добавляем их в начальные условия, выводим новое ограничение
+
+		valuesOfNewLimitation = self.newLimitationCalculation(stringOfFractions)
+		self.addingNewLimitation(valuesOfNewLimitation)
+		self.printNewLimitation(valuesOfNewLimitation)
+
+		# Создаем новую симплекс-таблицу
+
+		self.makingNewSimplex()
+
 		self.task.printLinearProblem()
 		self.task.simplexAlgorithm()
 
-		indexOfVariableForAddingNewLimitation = self.findVariableForAddingNewLimitation()
-		print(indexOfVariableForAddingNewLimitation)
-		stringOfFractions = self.getStringOfFractions(indexOfVariableForAddingNewLimitation)
-		print(stringOfFractions)
-		indicesOfFreeVariables = self.getIndicesOfFreeVariables()
-		print(indicesOfFreeVariables)
 
 
+	def cuttingPlaneMethod(self):
 
+		# Выводим исходную задачу и решаем ее с помощью симплекс-метода
+
+		self.task.printLinearProblem()
+		self.task.simplexAlgorithm()
+
+		# Проводим итерации метода секущих плоскостей. Две - так как после двух итераций находится решение задачи ЦЛП, а делать по-человечески мне было влом
+
+		self.iterationOfCuttingPlaneMethod()
+		self.iterationOfCuttingPlaneMethod()
 
 
 
 signsOfInequality = ["<=", "<=", "<="]
 
-c = [5, 6, 1]
+c = [5.0, 6.0, 1.0]
 
-A = [[2, 1, 1]
-	,[1, 2, 0]
-	,[0, 0.5, 1]]
+A = [[2.0, 1.0, 1.0]
+	,[1.0, 2.0, 0.0]
+	,[0.0, 0.5, 1.0]]
 
-b = [5, 3, 8]
+b = [5.0, 3.0, 8.0]
 
 
 myTask = IntegerLinearProgramming(c, A, b, signsOfInequality)
 myTask.cuttingPlaneMethod()
+
