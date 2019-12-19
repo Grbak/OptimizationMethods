@@ -391,7 +391,6 @@ class IntegerLinearProgramming:
 						# print(self.task.x[i])
 						fractions.append(round(self.task.SimplexTableau[j][self.task.numberOfVariables + 1] % 1, 2))
 
-
 		return fractions
 
 
@@ -409,7 +408,8 @@ class IntegerLinearProgramming:
 
 	def getIndexOfVariableForAddingNewLimitation(self, minimalFraction):
 		indexOfVariableForAddingNewLimitation = 0
-		for index in range(1, self.task.numberOfBasicVariables):
+		for index in range(1, self.task.numberOfBasicVariables + 1):
+			# print(round(self.task.SimplexTableau[index][self.task.numberOfVariables + 1] % 1, 2))
 			if((round(self.task.SimplexTableau[index][self.task.numberOfVariables + 1] % 1, 2) == minimalFraction)):
 				indexOfVariableForAddingNewLimitation = index
 				break
@@ -420,8 +420,9 @@ class IntegerLinearProgramming:
 
 	def printFractions(self, stringOfFractions):
 		print("     Остатки элементов этой строки:\n")
-		for i in range(len(stringOfFractions)):
+		for i in range(len(stringOfFractions) - 1):
 			print("     {", self.task.x[i], "} =", round(stringOfFractions[i], 2),"\n")
+		print("     {", self.task.other[2], "} =", round(stringOfFractions[len(stringOfFractions) - 1], 2), "\n")
 
 
 
@@ -430,8 +431,9 @@ class IntegerLinearProgramming:
 		minimalFraction = self.getMinimalFraction(fractions)
 		indexOfVariableForAddingNewLimitation = self.getIndexOfVariableForAddingNewLimitation(minimalFraction)
 
-		print("     Минимальный остаток в столбце свободных членов равен", minimalFraction, "и находится в строке",
-			self.task.SimplexTableau[indexOfVariableForAddingNewLimitation][0],".\n")
+		if not(indexOfVariableForAddingNewLimitation == 0):
+			print("\n\n     Минимальный остаток в столбце свободных членов равен", minimalFraction, "и находится в строке",
+				self.task.SimplexTableau[indexOfVariableForAddingNewLimitation][0],".\n")
 
 		return indexOfVariableForAddingNewLimitation
 
@@ -477,15 +479,38 @@ class IntegerLinearProgramming:
 		self.b.append(valuesOfNewLimitation[len(valuesOfNewLimitation) - 1])
 
 		self.signsOfInequality.append("<=")
+ 
+
+
+	def printCalculations(self, stringOfFractions):
+		print("     Проводим вычисления:\n\n     ", end="")
+		for index in range(len(stringOfFractions) - 2):
+			if(stringOfFractions[index] == 0):
+				continue
+			print(round(stringOfFractions[index], 2), "*", self.task.x[index], "+", end=" ")
+		print(round(stringOfFractions[len(stringOfFractions) - 2], 2), "*", self.task.x[len(stringOfFractions) - 2], "<=", round(stringOfFractions[len(stringOfFractions) - 1], 2), "\n     ")
+
+		# for index in range(self.task.numberOfFreeVariables):
+		# 	if(stringOfFractions[index] == 0):
+		# 		continue
+		# 	print(round(stringOfFractions[index], 2), "*", self.task.x[index], "+", end=" ")
+
+		# for i in range(self.task.numberOfFreeVariables, self.task.numberOfVariables):
+		# 	if(stringOfFractions[i] == 0):
+		# 		continue
+		# 	print(round(stringOfFractions[i]), "* (", end= "")
+		# 	print(self.b[i - self.task.numberOfFreeVariables], end="")
+		# 	for j in range(self.task.numberOfFreeVariables):
+		# 		print(" - ", A[i - self.task.numberOfFreeVariables][j], "*", self.task.x[j], end="")
+		# 	print(") +")
 
 	
 
 	def printNewLimitation(self, valuesOfNewLimitation):
-		print("     Проводим вычисления и добавляем новое ограничение:\n\n     ", end="")
-		for j in range (len(valuesOfNewLimitation) - 1):
+		print("     Добавляем новое ограничение:\n\n     ", end="")
+		for j in range (len(valuesOfNewLimitation) - 2):
 				print(valuesOfNewLimitation[j], "*", self.task.x[j], "+", end=" ")
-		print("<=", self.b[len(self.b) - 1])
-
+		print(valuesOfNewLimitation[len(valuesOfNewLimitation) - 2], "*", self.task.x[len(valuesOfNewLimitation) - 2], "<=", self.b[len(self.b) - 1])
 
 
 
@@ -494,6 +519,9 @@ class IntegerLinearProgramming:
 		# Находим строку, по которой будем добавлять новое ограничение, выводим остатки элементов этой строки
 
 		indexOfVariableForAddingNewLimitation = self.findVariableForAddingNewLimitation()
+		if(indexOfVariableForAddingNewLimitation == 0):
+			print("     Целочисленное решение найдено!")
+			return 1
 		stringOfFractions = self.getStringOfFractions(indexOfVariableForAddingNewLimitation)
 		self.printFractions(stringOfFractions)
 
@@ -501,6 +529,7 @@ class IntegerLinearProgramming:
 
 		valuesOfNewLimitation = self.newLimitationCalculation(stringOfFractions)
 		self.addingNewLimitation(valuesOfNewLimitation)
+		self.printCalculations(stringOfFractions)
 		self.printNewLimitation(valuesOfNewLimitation)
 
 		# Создаем новую симплекс-таблицу
@@ -519,24 +548,26 @@ class IntegerLinearProgramming:
 		self.task.printLinearProblem()
 		self.task.simplexAlgorithm()
 
-		# Проводим итерации метода секущих плоскостей. Две - так как после двух итераций находится решение задачи ЦЛП, а делать по-человечески мне было влом
-
-		self.iterationOfCuttingPlaneMethod()
-		self.iterationOfCuttingPlaneMethod()
+		# Проводим итерации метода секущих плоскостей
+		
+		while True:
+			if(self.iterationOfCuttingPlaneMethod() == 1):
+				break
 
 
 
 signsOfInequality = ["<=", "<=", "<="]
 
-c = [5.0, 6.0, 1.0]
+c = [3.0, 1.0, 4.0]
 
 A = [[2.0, 1.0, 1.0]
-	,[1.0, 2.0, 0.0]
+	,[1.0, 4.0, 0.0]
 	,[0.0, 0.5, 1.0]]
 
-b = [5.0, 3.0, 8.0]
+b = [6.0, 4.0, 1.0]
 
 
 myTask = IntegerLinearProgramming(c, A, b, signsOfInequality)
 myTask.cuttingPlaneMethod()
+`
 
