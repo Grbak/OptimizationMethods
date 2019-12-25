@@ -1,13 +1,14 @@
+from dual import Dual
+
 class Simplex:
 	def __init__ (self, c, A, b, signsOfInequality):
 		self.c = c # Вектор правой части системы ограничений
 		self.A = A # Матрица системы ограничений
 		self.b = b # Вектор коэффициентов целевой функции F
 
-		self.x = ["x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9"] # Список, элементы которого будут использованы для вывода постановки ПЗ ЛП
-		self.other = ["-", "F", "b"]
-		self.basicVariables = ["u6", "u7", "u8", "u9"] 
-		self.u = ["u1", "u2", "u3", "u4", "u5", "u6", "u7", "u8", "u9"]
+		self.x = ["u1", "u2", "u3", "u4", "u5", "u6", "u7", "u8", "u9"] # Список, элементы которого будут использованы для вывода постановки ПЗ ЛП
+		self.other = ["-", "W", "b"]
+		self.basicVariables = ["u4", "u5", "u6", "u7", "u8", "u9"] 
 		self.signsOfInequality = signsOfInequality # Список знаков неравенст
 
 		self.numberOfFreeVariables = len(self.c) # Количество свободных переменных
@@ -28,20 +29,20 @@ class Simplex:
 		self.string = []
 		self.string.append(self.other[0])
 		for index in range (self.numberOfVariables):
-			self.string.append(self.u[index])
+			self.string.append(self.x[index])
 		self.string.append(self.other[2])
 		self.SimplexTableau.append(self.string)
 
 		for i in range(self.numberOfBasicVariables):
 			self.basicVariable = []
-			self.basicVariable.append(self.basicVariables[i])
+			self.basicVariable.append(self.basicVariables[i + 1])
 			for j in range(self.numberOfFreeVariables):
 				self.basicVariable.append(A[i][j])
 			for element in range(self.numberOfBasicVariables):
 				if(element == i):
-					self.basicVariable.append(1.0)
+					self.basicVariable.append(1)
 				else:
-					self.basicVariable.append(0.0)
+					self.basicVariable.append(0)
 			self.basicVariable.append(self.b[i])
 			self.SimplexTableau.append(self.basicVariable)
 
@@ -51,7 +52,7 @@ class Simplex:
 		for index in self.c:
 			self.F.append(-index)
 		for index in range(self.numberOfBasicVariables + 1):
-		 	self.F.append(0.0)
+		 	self.F.append(0)
 		self.SimplexTableau.append(self.F)
 
 
@@ -90,28 +91,28 @@ class Simplex:
 
 		# Вывод постановки задачи
 
-		print("\n     W = ", end="")
+		print("\n     F = ", end="")
 		for j in range (self.numberOfFreeVariables):
 			if(j == self.numberOfFreeVariables - 1):
-				print(self.c[j], "*", self.u[j], end="")
+				print(self.c[j], "*", self.x[j], end="")
 				break
-			print(self.c[j], "*", self.u[j], end=" + ")
-		print(" -> min")
+			print(self.c[j], "*", self.x[j], end=" + ")
+		print(" -> max")
 
 		# Вывод системы ограничений
 
 		for i in range (self.numberOfBasicVariables):
 			print("     ", end="")
 			for j in range (self.numberOfFreeVariables - 1):
-				print(self.A[i][j], "*", self.u[j], "+", end=" ")
-			print(self.A[i][self.numberOfFreeVariables - 1], "*", self.u[self.numberOfFreeVariables - 1], self.signsOfInequality[i],self.b[i])
+				print(self.A[i][j], "*", self.x[j], "+", end=" ")
+			print(self.A[i][self.numberOfFreeVariables - 1], "*", self.x[self.numberOfFreeVariables - 1], self.signsOfInequality[i],self.b[i])
 		
 		# Вывод системы ограничений с веденными фиктивными переменными
 
 		print("     ", end="")
 		for i in range(self.numberOfFreeVariables - 1):
-			print(self.u[i], end=", ")
-		print (self.u[self.numberOfFreeVariables - 1],">= 0 \n")
+			print(self.x[i], end=", ")
+		print (self.x[self.numberOfFreeVariables - 1],">= 0 \n")
 
 		print("     Введем фиктивные переменные ", end="")
 		for index in range(self.numberOfBasicVariables - 1):
@@ -119,28 +120,28 @@ class Simplex:
 		print(self. basicVariables[self.numberOfBasicVariables - 1], ":\n")
 
 
-		print("     W = - ( - ", end="")
+		print("     F = - ( - ", end="")
 		for j in range (self.numberOfFreeVariables):
 			if(j == self.numberOfFreeVariables - 1):
-				print(self.c[j], "*", self.u[j], end="")
+				print(self.c[j], "*", self.x[j], end="")
 				break
-			print(self.c[j], "*", self.u[j], end=" - ")
+			print(self.c[j], "*", self.x[j], end=" - ")
 		print(") -> min")
 
 		for i in range (self.numberOfBasicVariables):
 			print("     ", end="")
 			for j in range (self.numberOfFreeVariables - 1):
-				print(self.A[i][j], "*", self.u[j], "+", end=" ")
+				print(self.A[i][j], "*", self.x[j], "+", end=" ")
 			if(self.signsOfInequality[i] == ">="):
-				print(self.A[i][self.numberOfFreeVariables - 1], "*", self.u[self.numberOfFreeVariables - 1], "- 1.0 *", self.basicVariables[i], "=", self.b[i])
+				print(self.A[i][self.numberOfFreeVariables - 1], "*", self.x[self.numberOfFreeVariables - 1], "- 1.0 *", self.basicVariables[i], "=", self.b[i])
 			else:
-				print(self.A[i][self.numberOfFreeVariables - 1], "*", self.u[self.numberOfFreeVariables - 1], "+ 1.0 *", self.basicVariables[i], "=", self.b[i])
+				print(self.A[i][self.numberOfFreeVariables - 1], "*", self.x[self.numberOfFreeVariables - 1], "+ 1.0 *", self.basicVariables[i], "=", self.b[i])
 
 
 		print("     ", end="")
 		for i in range(self.numberOfVariables - 1):
-			print(self.u[i], end=", ")
-		print (self.u[self.numberOfVariables - 1], ">= 0 \n")
+			print(self.x[i], end=", ")
+		print (self.x[self.numberOfVariables - 1], ">= 0 \n")
 
 
 		for i in range(1, self.numberOfBasicVariables + 1):
@@ -148,7 +149,6 @@ class Simplex:
 				for j in range(1, self.numberOfVariables + 2):
 					if not (j == self.numberOfFreeVariables + i):
 						self.SimplexTableau[i][j] *= -1
-
 
 
 
@@ -179,53 +179,58 @@ class Simplex:
 
 	def findResolvingColumn (self, flag):
 
-		if(flag == 0):
+		# if(flag == 0):
 
-			# Проходимся по столбцу свободных членов симплекс-таблицы и добавляем все отрицательные элементы в список listOfIndices
+		# 	# Проходимся по столбцу свободных членов симплекс-таблицы и добавляем все отрицательные элементы в список listOfIndices
 
-			listOfIndices = [] 
-			for index in range(1, len(self.SimplexTableau) - 1):
-				if (self.SimplexTableau[index][self.numberOfVariables + 1] < 0):
-					listOfIndices.append(index);
+		# 	listOfIndices = [] 
+		# 	for index in range(1, len(self.SimplexTableau) - 1):
+		# 		if (self.SimplexTableau[index][self.numberOfVariables + 1] < 0):
+		# 			listOfIndices.append(index);
 
-			print(listOfIndices)
+		# 	# Далее зададим начальное значение минимального элемента равным нулю, а индекс - единице
 
-			# Далее зададим начальное значение минимального элемента равным нулю, а индекс - единице
+		# 	minimalElement = 0
+		# 	indexOfString = 1
 
-			minimalElement = 0
-			indexOfString = 1
-
-			# Проходим по списку listOfIndices и находим минимальный элемент
+		# 	# Проходим по списку listOfIndices и находим минимальный элемент
 			
-			for index in listOfIndices: 
-				if (self.SimplexTableau[index][self.numberOfVariables + 1] <= minimalElement):
-					minimalElement = self.SimplexTableau[index][self.numberOfVariables + 1]
-					indexOfString = index
+		# 	for index in listOfIndices: 
+		# 		if (self.SimplexTableau[index][self.numberOfVariables + 1] < minimalElement):
+		# 			minimalElement = self.SimplexTableau[index][self.numberOfVariables + 1]
+		# 			indexOfString = index
 
-			print(indexOfString)
+		# 	indexOfResolvingString = 0
 
-			indexOfResolvingColumn = 0
+		# 	print("------------------------",indexOfString)
 
-			# Проходим по строке с индексом indexOfString и ищем первый отрицательный элемент. Столбец, в котором находится этот элемент и будет разрешающим
+		# 	# Проходим по строке с индексом indexOfString и ищем первый отрицательный элемент. Столбец, в котором находится этот элемент и будет разрешающим
 
-			for index in range(1, len(self.SimplexTableau[indexOfString]) - 1):
-				if(self.SimplexTableau[indexOfString][len(self.SimplexTableau[indexOfString]) - 1 - index] < 0):
-					indexOfResolvingColumn = len(self.SimplexTableau[indexOfString]) - 1 -index
-					break
-			#Возвращаем индекс разрешающего столбца
+		# 	for index in range(1, len(self.SimplexTableau[indexOfString]) - 1):
+		# 		if(self.SimplexTableau[indexOfString][index] < 0):
+		# 			indexOfResolvingString = index
+		# 			break
+		# 	#Возвращаем индекс разрешающего столбца
 
-			return indexOfResolvingColumn 
+
+		# 	min = 0
+		# 	indexOfResolvingColumn = 0
+		# 	for index in range(1, len(self.SimplexTableau[indexOfResolvingString])):
+		# 		if(self.SimplexTableau[indexOfResolvingString][index] < min):
+		# 			indexOfResolvingColumn = index
+
+		# 	return [indexOfResolvingString, indexOfResolvingColumn]
 
 		if(flag == 1):
 
-		# Проходимся по последней строке симплекс-таблицы и добавляем все положительные элементы в список listOfIndices
+		# Проходимся по последней строке симплекс-таблицы и добавляем все отрицательные элементы в список listOfIndices
 
 			listOfIndices = [] 
 			for index in range(1, len(self.SimplexTableau[self.numberOfBasicVariables]) - 1):
 				if (self.SimplexTableau[self.numberOfBasicVariables + 1][index] > 0): 
 					listOfIndices.append(index);
 
-			# Далее зададим начальное значение максимального элемента равным нулю, а индекс - единице
+			# Далее зададим начальное значение минимального элемента равным нулю, а индекс - единице
 
 			maximalElement = 0
 			indexOfResolvingColumn = 1
@@ -280,12 +285,9 @@ class Simplex:
 
 		for index in listOfIndices: 
 			currentValue = self.SimplexTableau[index][self.numberOfVariables + 1] / self.SimplexTableau[index][indexOfResolvingColumn]
-			print(currentValue)
-			if ((currentValue <= minimalValue) & (currentValue >= 0)):
+			if ( (currentValue <= minimalValue) & (currentValue >= 0)):
 				minimalValue = currentValue 
 				indexOfResolvingString = index
-
-		print(indexOfResolvingString)
 
 		# Возвращаем индекс разрешающей строки
 
@@ -297,10 +299,13 @@ class Simplex:
 	# оптимального решения. Поскольку от этого зависит только нахождение разрешающего столбца, с аргументом flag вызывается только функция findResolvingColumn
 
 	def findResolvingElement(self, flag):
-		resolvingColumn = self.findResolvingColumn(flag)
-		resolvingString = self.findResolvingString(resolvingColumn)
+		if(flag == 0):
+			return self.findResolvingColumn(flag)
 
-		print("     Разрешающий элемент находится в", resolvingString, "строке и",resolvingColumn, "столбце")
+		resolvingColumn = self.findResolvingColumn(flag)
+		print("     Разрешающий столбец:", resolvingColumn, "\n")
+		resolvingString = self.findResolvingString(resolvingColumn)
+		print("     Разрешающая строка:", resolvingString, "\n\n")
 
 		return [resolvingString, resolvingColumn]
 
@@ -331,8 +336,42 @@ class Simplex:
 		self.SimplexTableau[indexOfResolvingString][0] = self.SimplexTableau[0][indexOfResolvingColumn]
 
 		self.printSimplexTableau()
-		print("\n")
 
+
+	def gavno(self):
+		listOfIndices = [] 
+		for index in range(1, len(self.SimplexTableau) - 1):
+			if (self.SimplexTableau[index][self.numberOfVariables + 1] < 0):
+				listOfIndices.append(index);
+
+		# print(listOfIndices)
+
+		# Далее зададим начальное значение минимального элемента равным нулю, а индекс - единице
+
+		minimalElement = 0
+		indexOfString = 1
+
+		# Проходим по списку listOfIndices и находим минимальный элемент
+			
+		for index in listOfIndices: 
+			if (self.SimplexTableau[index][self.numberOfVariables + 1] < minimalElement):
+				minimalElement = self.SimplexTableau[index][self.numberOfVariables + 1]
+				indexOfString = index
+
+		print("     Разрешающая строка:", indexOfString,"\n")
+
+		min = 0
+		ind = 0
+
+		for i in range(1, len(self.SimplexTableau[indexOfString]) - 1):
+			if(self.SimplexTableau[indexOfString][i] < min):
+				min = self.SimplexTableau[indexOfString][i]
+				ind = i
+
+		
+		print("     Разрешающий столбец:", ind,"\n")
+
+		return [indexOfString, ind]
 
 
 	# simplexAlgorithm - функция, описывающая весь алгоритм симплекс-метода
@@ -351,7 +390,7 @@ class Simplex:
 				print("\n     На одном из этапов решения симплекс-таблица имеет следующий вид, что говорит об отсутствии решения задачи:\n")
 				self.printSimplexTableau()
 				return 0
-			resolvingElement = self.findResolvingElement(0)
+			resolvingElement = self.gavno()
 			self.tableConversion(resolvingElement)
 
 		# Преобразуем таблицу, пока isOptimal не вернет единицу, т.е. не будет найдено опорное решение
@@ -374,10 +413,9 @@ class Simplex:
 
 		print("\n     Оптимальное решение:\n")
 		for index in range(1, self.numberOfBasicVariables + 2):
-			print("    ", self.SimplexTableau[index][0], " = ", round(self.SimplexTableau[index][self.numberOfVariables + 1], 4), "\n")
+			print("    ", self.SimplexTableau[index][0], " = ", round(self.SimplexTableau[index][self.numberOfVariables + 1], 3), "\n")
 
 		return 1
-
 
 
 
@@ -455,21 +493,39 @@ class matrixGames:
 
 
 	def makingSimplex(self):
-		A = self.C
 
-		signsOfInequality = []
-		for i in range(len(self.C)):
-			signsOfInequality.append(">=")
+			A = []
 
-		b = []
-		for i in range(len(self.C)):
-			b.append(1.0)
+			for i in range(len(self.C[0])):
+		 		string = []
+		 		for j in range(len(self.C)):
+		 			string.append(C[j][i])
+		 		A.append(string)
 
-		c = []
-		for i in range(len(self.C[0])):
-			c.append(1.0)
+			b = []
+			for i in range(len(self.C[0])):
+				b.append(1.0)
 
-		self.task = Simplex(c, A, b, signsOfInequality)
+			c = []
+			for i in range(len(self.C)):
+				c.append(1.0)
+
+			self.task = Simplex(c, A, b, [">=",">=",">=",">=",">="])
+
+
+			# A = self.C
+
+			# b = []
+			# for i in range(len(self.C[0])):
+			# 	b.append(1.0)
+
+			# c = []
+			# for i in range(len(self.C)):
+			# 	c.append(1.0)
+
+			# self.task = Dual(c, A, b)
+
+
 
 
 
@@ -485,8 +541,8 @@ class matrixGames:
 
 		self.task.printLinearProblem()
 
-		print("     Исходная симплекс-таблица имеет вид:\n")
-		self.task.printSimplexTableau()
+		# print("     Исходная симплекс-таблица имеет вид:\n")
+		# self.task.printSimplexTableau()
 
 		self.task.simplexAlgorithm()
 
