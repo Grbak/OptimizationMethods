@@ -88,13 +88,13 @@ class Dual:
 
 		# Вывод постановки задачи
 
-		print("\n     W = ", end="")
+		print("\n     Z = ", end="")
 		for j in range (self.numberOfFreeVariables):
-			if(j == self.numberOfFreeVariables - 1):
+			if(j == self.numberOfFreeVariables):
 				print(self.c[j], "*", self.u[j], end="")
 				break
 			print(self.c[j], "*", self.u[j], end=" + ")
-		print(" -> min")
+		print(self.c[self.numberOfFreeVariables - 1],"*", self.u[self.numberOfFreeVariables], " -> max")
 
 		# Вывод системы ограничений
 
@@ -102,14 +102,14 @@ class Dual:
 			print("     ", end="")
 			for j in range (self.numberOfFreeVariables - 1):
 				print(self.A[i][j], "*", self.u[j], "+", end=" ")
-			print(self.A[i][self.numberOfFreeVariables - 1], "*", self.u[self.numberOfFreeVariables - 1]," self.signsOfInequality[i]",self.b[i])
+			print(self.A[i][self.numberOfFreeVariables - 1], "*", self.u[self.numberOfFreeVariables - 1], "<=",self.b[i])
 		
 		# Вывод системы ограничений с веденными фиктивными переменными
 
 		print("     ", end="")
-		for i in range(self.numberOfFreeVariables - 1):
+		for i in range(self.numberOfFreeVariables):
 			print(self.u[i], end=", ")
-		print (self.u[self.numberOfFreeVariables - 1],">= 0 \n")
+		print (self.u[self.numberOfFreeVariables],">= 0 \n")
 
 		print("     Введем фиктивные переменные ", end="")
 		for index in range(self.numberOfBasicVariables - 1):
@@ -117,13 +117,14 @@ class Dual:
 		print(self. basicVariables[self.numberOfBasicVariables - 1], ":\n")
 
 
-		print("     W = - ( - ", end="")
+		print("     Z = - ( ", end="")
 		for j in range (self.numberOfFreeVariables):
-			if(j == self.numberOfFreeVariables - 1):
+			if(j == self.numberOfFreeVariables):
 				print(self.c[j], "*", self.u[j], end="")
 				break
-			print(self.c[j], "*", self.u[j], end=" - ")
-		print(") -> min")
+			print(self.c[j], "*", self.u[j], end=" + ")
+
+		print(self.c[self.numberOfFreeVariables - 1],"*", self.u[self.numberOfFreeVariables], ") -> min")
 
 		for i in range (self.numberOfBasicVariables):
 			print("     ", end="")
@@ -135,9 +136,7 @@ class Dual:
 		print("     ", end="")
 		for i in range(self.numberOfVariables - 1):
 			print(self.u[i], end=", ")
-		print (self.u[self.numberOfVariables - 1], ">= 0 \n")
-
-
+		print (self.u[self.numberOfVariables - 	1], ">= 0 \n")
 
 
 
@@ -178,8 +177,6 @@ class Dual:
 				if (self.SimplexTableau[index][self.numberOfVariables + 1] < 0):
 					listOfIndices.append(index);
 
-			print(listOfIndices)
-
 			# Далее зададим начальное значение минимального элемента равным нулю, а индекс - единице
 
 			minimalElement = 0
@@ -191,8 +188,6 @@ class Dual:
 				if (self.SimplexTableau[index][self.numberOfVariables + 1] <= minimalElement):
 					minimalElement = self.SimplexTableau[index][self.numberOfVariables + 1]
 					indexOfString = index
-
-			print(indexOfString)
 
 			indexOfResolvingColumn = 0
 
@@ -270,12 +265,9 @@ class Dual:
 
 		for index in listOfIndices: 
 			currentValue = self.SimplexTableau[index][self.numberOfVariables + 1] / self.SimplexTableau[index][indexOfResolvingColumn]
-			print(currentValue)
 			if ((currentValue <= minimalValue) & (currentValue >= 0)):
 				minimalValue = currentValue 
 				indexOfResolvingString = index
-
-		print(indexOfResolvingString)
 
 		# Возвращаем индекс разрешающей строки
 
@@ -290,7 +282,8 @@ class Dual:
 		resolvingColumn = self.findResolvingColumn(flag)
 		resolvingString = self.findResolvingString(resolvingColumn)
 
-		print("     Разрешающий элемент находится в", resolvingString, "строке и",resolvingColumn, "столбце")
+		print("     Разрешающий столбец:", resolvingColumn, "\n")
+		print("     Разрешающая строка:", resolvingString, "\n")
 
 		return [resolvingString, resolvingColumn]
 
@@ -321,7 +314,6 @@ class Dual:
 		self.SimplexTableau[indexOfResolvingString][0] = self.SimplexTableau[0][indexOfResolvingColumn]
 
 		self.printSimplexTableau()
-		print("\n")
 
 
 
@@ -364,7 +356,7 @@ class Dual:
 
 		print("\n     Оптимальное решение:\n")
 		for index in range(1, self.numberOfBasicVariables + 2):
-			print("    ", self.SimplexTableau[index][0], " = ", round(self.SimplexTableau[index][self.numberOfVariables + 1], 4), "\n")
+			print("    ", self.SimplexTableau[index][0], " = ", round(self.SimplexTableau[index][self.numberOfVariables + 1], 3), "\n")
 
 		return 1
 
