@@ -115,9 +115,9 @@ class Simplex:
 		print (self.x[self.numberOfFreeVariables - 1],">= 0 \n")
 
 		print("     Введем фиктивные переменные ", end="")
-		for index in range(self.numberOfBasicVariables - 1):
+		for index in range(1, self.numberOfBasicVariables ):
 			print(self.basicVariables[index], ",", end=" ")
-		print(self. basicVariables[self.numberOfBasicVariables - 1], ":\n")
+		print(self. basicVariables[self.numberOfBasicVariables], ":\n")
 
 
 		print("     F = - ( - ", end="")
@@ -133,7 +133,7 @@ class Simplex:
 			for j in range (self.numberOfFreeVariables - 1):
 				print(self.A[i][j], "*", self.x[j], "+", end=" ")
 			if(self.signsOfInequality[i] == ">="):
-				print(self.A[i][self.numberOfFreeVariables - 1], "*", self.x[self.numberOfFreeVariables - 1], "- 1.0 *", self.basicVariables[i], "=", self.b[i])
+				print(self.A[i][self.numberOfFreeVariables - 1], "*", self.x[self.numberOfFreeVariables - 1], "- 1.0 *", self.basicVariables[i + 1], "=", self.b[i])
 			else:
 				print(self.A[i][self.numberOfFreeVariables - 1], "*", self.x[self.numberOfFreeVariables - 1], "+ 1.0 *", self.basicVariables[i], "=", self.b[i])
 
@@ -430,7 +430,11 @@ class matrixGames:
 		self.b = ["b1", "b2", "b3", "b4"]
 		self.x = ["x1", "x2", "x3", "x4", "x5"]
 		self.u = ["u1", "u2", "u3", "u4", "u5"]
+		self.y = ["y1", "y2", "y3", "y4", "y5"]
+		self.v = ["v1", "v2", "v3", "v4", "v5"]
 		self.other = ["-", "g", "h"]
+
+
 
 		string = []
 		string.append(self.other[0])
@@ -465,34 +469,101 @@ class matrixGames:
 			print("\n")
 
 
-	def printSystemOfEquations(self):
-		for i in range (len(self.C)):
-			print("     ", end="")
-			for j in range (len(self.C[i]) - 1):
-				print(self.C[i][j], "*", self.x[j], "+", end=" ")
-			print(self.C[i][len(self.C)], "*", self.x[len(self.C)], ">=", self.other[1])
+	def printSystemOfEquationsForPlayerA(self):
+
+		A = []
+
+		for i in range(len(self.C[0])):
+		 	string = []
+		 	for j in range(len(self.C)):
+		 		string.append(C[j][i])
+		 	A.append(string)
+
+
+		for i in range(len(A)):
+		 	print("     ", end="")
+		 	for j in range(len(A[i]) - 1):
+		 		print(A[i][j], "*", self.x[j], "+", end=" ")
+		 	print(A[i][len(A[i]) - 1], "*", self.x[len(A) - 2], ">=", self.other[1])
+
+		# for i in range (len(self.C[0]) - 1):
+		# 	print("     ", end="")
+		# 	for j in range (len(self.C[i]) - 2):
+		# 		print(self.C[j][i], "*", self.x[j], "+", end=" ")
+		# 	print(self.C[len(self.C) - 1][i], "*", self.x[len(self.C) - 1], ">=", self.other[1])
 
 		print("     ", end="")
 		for index in range(len(self.C[0]) - 2):
 			print(self.x[index], "+", end=" ")
-		print(self.x[len(self.C[0]) - 2], "= 1\n")
+		print(self.x[len(self.C[0]) - 2], "= 1")
+
+		print("     ", end="")
+		for i in range(3):
+			print(self.x[i], ",", end=" ")
+		print(self.x[3], ">= 0\n")
+
 
 
 		print("     Разделим систему на функцию g:\n")
 
-		for i in range (len(self.C)):
+		for i in range (len(self.C[0]) - 1):
 			print("     ", end="")
-			for j in range (len(self.C[i]) - 1):
-				print(self.C[i][j], "*", self.u[j], "+", end=" ")
-			print(self.C[i][len(self.C)], "*", self.u[len(self.C)], ">= 1")
+			for j in range (len(self.C[i]) - 2):
+				print(self.C[j][i], "*", self.u[j], "+", end=" ")
+			print(self.C[len(self.C) - 1][i], "*", self.u[len(self.C) - 1], ">= 1")
 
 		print("     ", end="")
 		for index in range(len(self.C[0]) - 2):
 			print(self.u[index], "+", end=" ")
-		print(self.u[len(self.C[0]) - 2], "= 1\n")
+		print(self.u[len(self.C[0]) - 2], "= 1/g")
+
+		print("     ", end="")
+		for i in range(3):
+			print(self.u[i], ",", end=" ")
+		print(self.u[3], ">= 0\n")
 
 
-	def makingSimplex(self):
+	def printSystemOfEquationsForPlayerB(self):
+		for i in range (len(self.C)):
+			print("     ", end="")
+			for j in range (len(self.C[i]) - 1):
+				print(self.C[i][j], "*", self.y[j], "+", end=" ")
+			print(self.C[i][len(self.C)], "*", self.y[len(self.C)], "<=", self.other[2])
+
+		print("     ", end="")
+		for index in range(len(self.C[0]) - 1):
+			print(self.y[index], "+", end=" ")
+		print(self.y[len(self.C[0]) - 1], "= 1")
+
+		print("     ", end="")
+		for i in range(4):
+			print(self.y[i], ",", end=" ")
+		print(self.y[4], ">= 0\n")
+
+		print("     Разделим систему на функцию h:\n")
+
+		for i in range (len(self.C)):
+			print("     ", end="")
+			for j in range (len(self.C[i]) - 1):
+				print(self.C[i][j], "*", self.v[j], "+", end=" ")
+			print(self.C[i][len(self.C)], "*", self.v[len(self.C)], "<= 1")
+
+		print("     ", end="")
+		for index in range(len(self.C[0]) - 1):
+			print(self.v[index], "+", end=" ")
+		print(self.v[len(self.C[0]) - 1], "= 1/h")
+
+		print("     ", end="")
+		for i in range(4):
+			print(self.v[i], ",", end=" ")
+		print(self.v[4], ">= 0\n")
+
+
+
+
+	def makingSimplex(self, isPrimalProblem):
+
+		if isPrimalProblem:
 
 			A = []
 
@@ -512,18 +583,18 @@ class matrixGames:
 
 			self.task = Simplex(c, A, b, [">=",">=",">=",">=",">="])
 
+		else:
+			A = self.C
 
-			# A = self.C
+			b = []
+			for i in range(len(self.C[0])):
+				b.append(1.0)
 
-			# b = []
-			# for i in range(len(self.C[0])):
-			# 	b.append(1.0)
+			c = []
+			for i in range(len(self.C) + 1):
+				c.append(1.0)
 
-			# c = []
-			# for i in range(len(self.C)):
-			# 	c.append(1.0)
-
-			# self.task = Dual(c, A, b)
+			self.task = Dual(c, A, b)
 
 
 
@@ -533,9 +604,10 @@ class matrixGames:
 
 		print("     Дана матрица стратегий:\n")
 		self.printStrategyMatrix()
-		print("     Составим систему уравнений:\n")
-		self.printSystemOfEquations()
-		self.makingSimplex()
+
+		print("     Найдем смешанные стратегии для игрока А. Для этого составим систему уравнений:\n")
+		self.printSystemOfEquationsForPlayerA()
+		self.makingSimplex(1)
 
 		print("     Сформулируем задачу для решения симплекс-методом:")
 
@@ -545,6 +617,16 @@ class matrixGames:
 		# self.task.printSimplexTableau()
 
 		self.task.simplexAlgorithm()
+
+		print("     Найдем смешанные стратегии для игрока B. Сформулируем задачу для решения симплекс методом:\n")
+		self.makingSimplex(0)
+
+		self.printSystemOfEquationsForPlayerB()
+		
+		print("     Сформулируем задачу для решения симплекс-методом:")
+		self.task.printLinearProblem()
+		self.task.simplexAlgorithm()
+
 
 
 
